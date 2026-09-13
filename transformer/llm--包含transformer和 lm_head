@@ -22,3 +22,5 @@ transformer 输入和输出保持一致
   然后采样或 argmax：
 
   next_token = next_token_logits.argmax(dim=-1)
+
+  后面两部的变化 在 generate 函数 调用的 _sample 中
