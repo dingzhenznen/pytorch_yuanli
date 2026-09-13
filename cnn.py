@@ -116,6 +116,7 @@ def main():
     dataiter = iter(test_loader)
     images, labels = next(dataiter)
     print(images.shape)
+    print(labels)
 
 
 if __name__ == '__main__':
