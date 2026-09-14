@@ -1,0 +1,68 @@
+transformer 输入和输出保持一致
+
+
+[1, 10, 200]->[1, 10, 200]
+
+输出头 改变成 此表大小
+
+[1, 10, vocab_size]
+
+
+
+ 因为在自回归模型里，最后一个 token 位置的输出向量代表“基于整个当前上下文，对下一个 token 的预测”。
+
+outputs = transformer(input_ids, attention_mask=attention_mask)
+
+ hidden_states = outputs.last_hidden_state
+
+ hidden_states 形状： [batch,seq_len, hidden_size]
+
+
+hidden_states[:, -1, :]  代表最后一个词的向量 
+(这个向量和 embedding 维度相同,但是意义不同，输出向量代表经过transformer编码后“基于整个当前上下文）
+
+
+hidden_states 经过 lm_head 线性层后
+
+logits = lm_head(last_hidden)
+
+
+next_token_logits= logits[:, -1, :] 即代表 根据最后一个词 的预测
+
+  生成时为什么常取最后一个？
+
+  因为自回归生成下一个 token 时，只关心当前位置最后一个 token 后面要接什么，所以
+  取：
+
+  next_token_logits = logits[:, -1, :]
+
+  形状变成：
+
+  [batch, vocab_size]
+
+  然后采样或 argmax：
+
+  next_token = next_token_logits.argmax(dim=-1)
+  [batch]
+
+  后面两部的变化 在 generate 函数 调用的 _sample 中
+
+
+
+
+
+  在训练时 
+
+  input_ids = [我, 爱, 北京, 天安门]
+  labels    = [我, 爱, 北京, 天安门]
+
+  内部右移后实际目标是：
+
+  shift_labels = [爱, 北京, 天安门, -100]
+
+
+  就符合 logits:      
+   [batch_size, seq_len, vocab_size]
+  shift_labels: [batch_size, seq_len]
+
+  然后计算损失的 公式了 
